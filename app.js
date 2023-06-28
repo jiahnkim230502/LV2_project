@@ -4,6 +4,7 @@ const port = 3000;
 const indexRouter = require('./routes');
 const postsRouter = require('./routes/posts.js');
 const commentsRouter = require('./routes/comments.js');
+const userRouter = require("./routes/users.js");
 
 const connect = require('./schemas');
 
@@ -14,7 +15,7 @@ app.listen(port, () => {
 });
 
 app.use(express.json())
-app.use("/api", [indexRouter, postsRouter, commentsRouter]);
+app.use("/api", [indexRouter, postsRouter, commentsRouter, userRouter]);
 
 app.get('/', (req, res) => {
     res.send("페이지 시작");

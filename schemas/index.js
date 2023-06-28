@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const connect = () => {
     mongoose
-        .connect("mongodb://127.0.0.1:27017/ja_content")
+        .connect("mongodb://127.0.0.1:27017/lv2_project")
         .catch(err => console.log(err))
 }
 
