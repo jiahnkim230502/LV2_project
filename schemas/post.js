@@ -1,14 +1,18 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 
 const postSchema = new mongoose.Schema({
-    user: {
+    userId : {
         type: String,
         unique: true
     },
+    email: {
+        type: String,
+    },
+    nickname: {
+        type: String,
+    },
     password: {
         type: String,
-        required: true,
-        select: false
     },
     title : {
         type: String,
@@ -16,7 +20,7 @@ const postSchema = new mongoose.Schema({
     content : {
         type: String,
     },
-    date:{
+    updatedAt:{
         type : Date
     },
     __v: {

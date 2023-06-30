@@ -1,48 +1,74 @@
 const express = require("express");
 const router = express.Router();
-const Comments = require("../schemas/comment.js");
 
-router.get("/comments/:postid", async (req, res) => {
-    var { postid } = req.params
-    const allComments = await Comments.find({ "postid": postid });
+const Comments = require("../schemas/comment.js");
+const Users = require("../schemas/user.js");
+const Posts = require("../schemas/post.js");
+const authMiddleware = require("../middlewares/auth-middleware.js");
+
+// 댓글 조회
+router.get("/posts/:postId/comments", async (req, res) => {
+    const { postId } = req.params
+    const allComments = await Comments.find({ "postId": postId });
     allComments.sort(
         function (prev, next) {
             if (prev.date > next.date) { return -1 }
             else if (prev.date == next.date) { return 0 }
             else if (prev.date < next.date) { return 1 }
         }
-    )
+    );
 
     if (!allComments.length) {
-        return res.status(200).json({
-            "message": "댓글 없음"
+        return res.status(404).json({
+            "errorMessage": "댓글이 존재하지 않습니다."
         })
     } else {
         return res.status(200).json({ "posts": allComments })
-    }
+    };
 });
 
+// 댓글 작성
+// 로그인 토큰을 검사하여, 유효한 토큰일 경우에만 댓글 작성 가능
+router.post("/posts/:postId/comments", authMiddleware, async (req, res) => {
+    const { userId } = res.locals.user;
+    const { postId } = req.params
+    const { password, content } = req.body;
+    const existPost = Posts.findOne({ "postId": postId })
+    const existUser = Users.findOne({ "userId": userId })
 
-router.post("/comments/:postid", async (req, res) => {
-    var { postid } = req.params
-    var { user, password, content } = req.body;
-    var date = new Date()
+    if (!existPost) {
+        return res.status(404).json({ "message": "게시글이 존재하지 않습니다." });
+    }
+    if (!existUser) {
+        return res.status(403).json({ "message": "로그인이 필요한 필요한 기능입니다." });
+    };
+
+    let date = new Date()
+
     if (!content) {
         return res.status(400).json({
             success: false,
-            errorMessage: "댓글을 작성해 주세요."
+            errorMessage: "댓글 내용을 입력해주세요."
         })
     } else {
-        await Comments.create({ user, password, content, date, postid })
-        return res.status(201).json({ "message": "댓글이 작성되었습니다." })
-    }
-})
+        await Comments.create({ password, content, date, postId, userId })
+        return res.status(201).json({ "comment": "댓글을 작성하였습니다." })
+    };
+});
 
-router.put("/comments/:postid", async (req, res) => {
-    var { postid } = req.params;
-    var { user, password, content } = req.body;
-    var date = new Date();
+// 댓글 수정
+router.put("/posts/:postId/comments/:commentId", authMiddleware, async (req, res) => {
+    const { userId } = res.locals.user;
+    const { postId, commentId } = req.params;
+    const { content } = req.body;
 
+    const existComment = await Comments.findOne({ "_id": commentId });
+    
+    if (existComment.userId !== userId) {
+        return res.status(403).json({ "message": "댓글 수정권한이 존재하지 않습니다." })
+    };
+
+    let updatedAt = new Date();
 
     if (!content) {
         return res.status(400).json({
@@ -50,15 +76,24 @@ router.put("/comments/:postid", async (req, res) => {
             errorMessage: "수정할 댓글 내용을 입력해주세요."
         })
     } else {
-        await Comments.updateOne({ user, password, content, date, postid })
+        await Comments.updateOne({ content, updatedAt, postId })
         return res.status(201).json({ "message": "댓글이 수정되었습니다." })
-    }
-})
+    };
+});
 
-router.delete("/comments/:postid", async (req, res) => {
-    var { postid } = req.params;
-    var { user, password } = req.body;
-    if (Comments.find({ "postid": postid, "user": user, "password": password })) {
+// 댓글 제거
+router.delete("/posts/:postId/comments/:commentId", authMiddleware, async (req, res) => {
+    const { userId } = res.locals.user;
+    const { commentId } = req.params;
+    const { user, password } = req.body;
+    
+    const existComment = await Comments.findOne({ "_id": commentId});
+
+    if (existComment.userId !== userId) {
+        return res.status(403).json({ "message": "댓글 삭제권한이 존재하지 않습니다." })
+    }
+    
+    if (Comments.find({ "postId": postId, "user": user, "password": password })) {
         await Comments.deleteOne({ "user": user, "password": password })
         return res.status(200).json({
             "message": "댓글이 삭제되었습니다."

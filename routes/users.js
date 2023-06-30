@@ -1,15 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
-const Users = require("../schemas/users.js")
+const Users = require("../schemas/user.js")
 
 // 회원가입 API
 router.post("/users", async (req, res) => {
-    const { email, password, checkPassword, name, age, gender, nickname } = req.body;
-    const isExistUser = await Users.findOne({ "email": email });
+    const { email, password, checkPassword, nickname } = req.body;
+    const findUser = await Users.findOne({ "email": email });
     const isNickname = await Users.findOne({ "nickname": nickname });
     // email과 동일한 유저가 실제로 존재한다면 에러발생
-    if (isExistUser) {
+    if (findUser) {
         return res.status(409).json({ message: "이미 존재하는 이메일입니다." });
     };
     // 1. 닉네임은 최소 3자 이상, 알파벳 대소문자(a~z, A~Z), 숫자(0~9)로 구성하기
@@ -30,12 +30,11 @@ router.post("/users", async (req, res) => {
     }
 
     // 사용자 테이블에 데이터 삽입
-    const user = await Users.create({ email, password, nickname });
+    await Users.create({
+        email, password, nickname
+    });
     // 사용자 정보 테이블에 데이터를 삽입
     // 어떤 사용자의 사용자 정보인지 내용이 필요
-    await Users.create({
-        name, age, gender, password
-    });
 
     return res.status(201).json({ message: "회원가입이 완료되었습니다." });
 });
@@ -50,15 +49,15 @@ router.post("/login", async (req, res) => {
     };
 
     // jwt를 생성하고
-    const token = jwt.sign({
-        userId: user.userId
-    }, "customized_secret_key");
-
+    const token = jwt.sign(
+        { userId: user._id },
+        "customized_secret_key"
+    );
+    
     // 쿠키를 발급
     // 6. 로그인 성공 시, 로그인에 성공한 유저의 정보를 JWT를 활용하여 클라이언트에게 Cookie로 전달하기
-    res.cookie("authorization", `Bearer ${token}`);
-
-    return res.status(200).json({ message: "로그인에 성공하였습니다." });
+    res.cookie("Authorization", `Bearer ${token}`);
+    res.status(200).json({ message: "로그인이 완료되었습니다." });
 });
 
 module.exports = router;
