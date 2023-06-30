@@ -18,7 +18,7 @@ router.get("/posts/:postId/comments", async (req, res) => {
         }
     );
 
-    if (!allComments.length) {
+    if (allComments.length <= 0) {
         return res.status(404).json({
             "errorMessage": "댓글이 존재하지 않습니다."
         })
