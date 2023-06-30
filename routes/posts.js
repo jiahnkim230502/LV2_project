@@ -33,7 +33,7 @@ router.get("/posts/:postId", async (req, res) => {
     const postfind = await Posts.findOne({ "_id": postId });
     if (postfind) {
         return res.status(200).json(
-            { "선택": postfind }
+            { "message": postfind }
         )
     }
 
@@ -85,7 +85,7 @@ router.put("/posts/:postId", authMiddleware, async (req, res) => {
             "error message": "사용자 권한이 없어 수정할 수 없습니다!"
         });
     } else {
-        var updatedAt = new Date();
+        let updatedAt = new Date();
         await Posts.updateOne({ title, content, updatedAt });
         return res.status(200).json({
             "message": "게시글 수정을 완료했습니다!"
