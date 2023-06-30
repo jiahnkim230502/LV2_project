@@ -10,10 +10,6 @@ const commentScheama = new mongoose.Schema({
         type: String
     },
 
-    updatedAt: {
-        type: Date,
-    },
-
     postId: {
         type: String,
     },
@@ -21,10 +17,19 @@ const commentScheama = new mongoose.Schema({
     userId: {
         type: String,
     },
+    
     __v: {
         type: Number,
         select: false
-    }
+    },
+
+    createdAt: {
+        type: Date,
+    },
+
+    updatedAt: {
+        type: Date,
+    },
 })
 
 module.exports = mongoose.model("Comments", commentScheama)

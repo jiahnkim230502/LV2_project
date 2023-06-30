@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 const Users = require("../schemas/user.js")
 
 // 회원가입 API
-router.post("/users", async (req, res) => {
+router.post("/signup", async (req, res) => {
     const { email, password, checkPassword, nickname } = req.body;
     const findUser = await Users.findOne({ "email": email });
     const isNickname = await Users.findOne({ "nickname": nickname });

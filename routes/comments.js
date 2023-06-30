@@ -43,7 +43,7 @@ router.post("/posts/:postId/comments", authMiddleware, async (req, res) => {
         return res.status(403).json({ "message": "로그인이 필요한 필요한 기능입니다." });
     };
 
-    let date = new Date()
+    let createdAt = new Date()
 
     if (!content) {
         return res.status(400).json({
@@ -51,7 +51,7 @@ router.post("/posts/:postId/comments", authMiddleware, async (req, res) => {
             errorMessage: "댓글 내용을 입력해주세요."
         })
     } else {
-        await Comments.create({ password, content, date, postId, userId })
+        await Comments.create({ password, content, postId, userId, createdAt })
         return res.status(201).json({ "comment": "댓글을 작성하였습니다." })
     };
 });
@@ -63,7 +63,7 @@ router.put("/posts/:postId/comments/:commentId", authMiddleware, async (req, res
     const { content } = req.body;
 
     const existComment = await Comments.findOne({ "_id": commentId });
-    
+
     if (existComment.userId !== userId) {
         return res.status(403).json({ "message": "댓글 수정권한이 존재하지 않습니다." })
     };
@@ -82,24 +82,24 @@ router.put("/posts/:postId/comments/:commentId", authMiddleware, async (req, res
 });
 
 // 댓글 제거
+// 로그인 토큰을 검사하여, 해당 사용자가 작성한 댓글만 삭제 가능
 router.delete("/posts/:postId/comments/:commentId", authMiddleware, async (req, res) => {
     const { userId } = res.locals.user;
     const { commentId } = req.params;
-    const { user, password } = req.body;
-    
-    const existComment = await Comments.findOne({ "_id": commentId});
+
+    const existComment = await Comments.findOne({ "_id": commentId });
 
     if (existComment.userId !== userId) {
         return res.status(403).json({ "message": "댓글 삭제권한이 존재하지 않습니다." })
     }
-    
-    if (Comments.find({ "postId": postId, "user": user, "password": password })) {
-        await Comments.deleteOne({ "user": user, "password": password })
+
+    if (Comments.find({ "_id": commentId })) {
+        await Comments.deleteOne({ "_id": commentId })
         return res.status(200).json({
             "message": "댓글이 삭제되었습니다."
-        })
-    }
-})
+        });
+    };
+});
 
 
 module.exports = router;
