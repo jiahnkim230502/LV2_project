@@ -1,10 +1,6 @@
 const mongoose = require("mongoose");
 
 const commentScheama = new mongoose.Schema({
-    user: {
-        type: String
-    },
-
     password: {
         type: String,
         select: false,
@@ -14,11 +10,15 @@ const commentScheama = new mongoose.Schema({
         type: String
     },
 
-    date: {
+    updatedAt: {
         type: Date,
     },
 
-    postid: {
+    postId: {
+        type: String,
+    },
+
+    userId: {
         type: String,
     },
     __v: {
