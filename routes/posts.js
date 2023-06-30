@@ -18,7 +18,7 @@ router.get("/posts", async (req, res) => {
         }
     );
 
-    if (!allPosts.length) {
+    if (allPosts.length <= 0) {
         return res.status(200).json({
             "message": "게시글이 없습니다."
         })
