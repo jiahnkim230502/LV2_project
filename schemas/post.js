@@ -3,7 +3,6 @@ const mongoose = require("mongoose");
 const postSchema = new mongoose.Schema({
     userId : {
         type: String,
-        unique: true
     },
     email: {
         type: String,
@@ -19,6 +18,9 @@ const postSchema = new mongoose.Schema({
     },
     content : {
         type: String,
+    },
+    createdAt: {
+        type : Date
     },
     updatedAt:{
         type : Date

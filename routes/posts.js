@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
+const Users = require("../schemas/user.js")
 const Posts = require("../schemas/post.js");
 const authMiddleware = require("../middlewares/auth-middleware.js");
 
@@ -11,9 +12,9 @@ router.get("/posts", async (req, res) => {
     // 작성 날짜 기준으로 내림차순 정렬하기
     allPosts.sort(
         function (prev, next) {
-            if (prev.date > next.date) { return -1 }
-            else if (prev.date == next.date) { return 0 }
-            else if (prev.date < next.date) { return 1 }
+            if (prev.createdAt > next.createdAt) { return -1 }
+            else if (prev.createdAt == next.createdAt) { return 0 }
+            else if (prev.createdAt < next.createdAt) { return 1 }
         }
     );
 
@@ -26,7 +27,7 @@ router.get("/posts", async (req, res) => {
     }
 });
 
-// 게시글 조회
+// 게시글 상세 조회
 router.get("/posts/:postId", async (req, res) => {
     const { postId } = req.params
     const postfind = await Posts.findOne({ "_id": postId });
@@ -44,16 +45,24 @@ router.get("/posts/:postId", async (req, res) => {
 router.post("/posts", authMiddleware, async (req, res) => {
     const { userId } = res.locals.user
     const { title, content, password, checkPassword } = req.body;
-    if (password !== checkPassword) {
-        return res.status(400).json({
-            "error message": "비밀번호가 확인과 일치하지 않습니다!"
+
+    const existUser = await Users.find({ "_id": userId});
+
+    if (!existUser) {
+        return res.status(403).json({
+            "error message": "로그인이 필요한 기능입니다!"
         });
     };
-    let date = new Date()
+    if (password !== checkPassword) {
+        return res.status(400).json({
+            "error message": "비밀번호와 비밀번호 확인이 일치하지 않습니다!"
+        });
+    };
+    let createdAt = new Date();
 
     // 제목, 작성 내용을 입력하기
     const post = await Posts.create({
-        userId, title, content, password, date
+        userId, title, content, password, createdAt
     })
     return res.status(201).json({ data: post })
 });
@@ -65,7 +74,7 @@ router.put("/posts/:postId", authMiddleware, async (req, res) => {
     const { postId } = req.params;
     const { title, content, password } = req.body;
     const existPost = await Posts.findOne({ "_id": postId });
-    
+
     if (existPost.password !== password) {
         return res.status(400).json({
             "error message": "비밀번호가 일치하지 않습니다!"
