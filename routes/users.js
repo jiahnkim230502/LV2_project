@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
 const Users = require("../schemas/user.js")
+require("dotenv").config();
 
 // 회원가입 API
 router.post("/signup", async (req, res) => {
     const { email, password, checkPassword, nickname } = req.body;
     const isNickname = await Users.findOne({ "nickname": nickname });
-    // email과 동일한 유저가 실제로 존재한다면 에러발생
     // 1. 닉네임은 최소 3자 이상, 알파벳 대소문자(a~z, A~Z), 숫자(0~9)로 구성하기
     if (nickname.length < 3 || !/[A-Z]/.test(nickname) || !/[0-9]/.test(nickname)) {
         return res.status(409).json({ message: "닉네임은 최소 3자 이상, 알파벳 대문자와 숫자를 포함하여야 합니다." });
@@ -23,7 +23,7 @@ router.post("/signup", async (req, res) => {
     // 4. 데이터베이스에 존재하는 닉네임을 입력한 채 회원가입 버튼을 누른 경우 "중복된 닉네임입니다." 라는 에러메세지를 response에 포함하기
     if (isNickname) {
         return res.status(409).json({ message: "중복된 닉네임입니다." });
-    }
+    };
 
     // 사용자 테이블에 데이터 삽입
     await Users.create({
@@ -47,7 +47,7 @@ router.post("/login", async (req, res) => {
     // jwt를 생성하고
     const token = jwt.sign(
         { userId: user._id },
-        "customized_secret_key"
+        process.env.COOKIE_SECRET
     );
     
     // 쿠키를 발급
