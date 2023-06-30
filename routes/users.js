@@ -6,12 +6,8 @@ const Users = require("../schemas/user.js")
 // 회원가입 API
 router.post("/signup", async (req, res) => {
     const { email, password, checkPassword, nickname } = req.body;
-    const findUser = await Users.findOne({ "email": email });
     const isNickname = await Users.findOne({ "nickname": nickname });
     // email과 동일한 유저가 실제로 존재한다면 에러발생
-    if (findUser) {
-        return res.status(409).json({ message: "이미 존재하는 이메일입니다." });
-    };
     // 1. 닉네임은 최소 3자 이상, 알파벳 대소문자(a~z, A~Z), 숫자(0~9)로 구성하기
     if (nickname.length < 3 || !/[A-Z]/.test(nickname) || !/[0-9]/.test(nickname)) {
         return res.status(409).json({ message: "닉네임은 최소 3자 이상, 알파벳 대문자와 숫자를 포함하여야 합니다." });
